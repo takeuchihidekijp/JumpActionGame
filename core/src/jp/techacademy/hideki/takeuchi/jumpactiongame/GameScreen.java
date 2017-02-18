@@ -3,6 +3,7 @@ package jp.techacademy.hideki.takeuchi.jumpactiongame;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.ScreenAdapter;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -50,6 +51,7 @@ public class GameScreen extends ScreenAdapter {
     Random mRandom;
     List<Step> mSteps;
     List<Star> mStars;
+    List<Enemy> mEnemys;
     Ufo mUfo;
     Player mPlayer;
 
@@ -60,6 +62,9 @@ public class GameScreen extends ScreenAdapter {
     int mScore;
     int mHighScore;
     Preferences mPrefs;
+
+    Sound sound;
+    Sound sound1;
 
     public GameScreen(JumpActionGame game){
         mGame = game;
@@ -86,6 +91,7 @@ public class GameScreen extends ScreenAdapter {
         mRandom = new Random();
         mSteps = new ArrayList<Step>();
         mStars = new ArrayList<Star>();
+        mEnemys = new ArrayList<Enemy>();
 
         mGameState = GAME_STATE_READY;
         mTouchPoint = new Vector3();
@@ -93,6 +99,10 @@ public class GameScreen extends ScreenAdapter {
         mFont.getData().setScale(0.8f);
         mScore = 0;
         mHighScore = 0;
+
+        sound = Gdx.audio.newSound(Gdx.files.internal("se_maoudamashii_onepoint23.mp3"));
+        sound1 = Gdx.audio.newSound(Gdx.files.internal("enemy.mp3"));
+
 
         // ハイスコアをPreferencesから取得する
         mPrefs = Gdx.app.getPreferences("jp.techacademy.hideki.takeuchi.jumpactiongame");
@@ -138,6 +148,11 @@ public class GameScreen extends ScreenAdapter {
             mStars.get(i).draw(mGame.batch);
         }
 
+        // Enemy
+        for (int i=0; i < mEnemys.size(); i++){
+            mEnemys.get(i).draw(mGame.batch);
+        }
+
         // UFO
         mUfo.draw(mGame.batch);
 
@@ -170,13 +185,15 @@ public class GameScreen extends ScreenAdapter {
         Texture starTexture = new Texture("star.png");
         Texture playerTexture = new Texture("uma.png");
         Texture ufoTexture = new Texture("ufo.png");
+        Texture enemysTexture = new Texture("enemy.png");
 
         // StepとStarをゴールの高さまで配置していく
         float y = 0;
 
         float maxJumpHeight = Player.PLAYER_JUMP_VELOCITY * Player.PLAYER_JUMP_VELOCITY / (2* -GRAVITY);
         while ( y < WORLD_HEIGHT -5 ){
-            int type  = mRandom.nextFloat() > 0.8f ? Step.STEP_TYPE_MOVING : Step.STEP_TYPE_STATIC;
+            int type  = mRandom.nextFloat() > 0.5f ? Step.STEP_TYPE_MOVING : Step.STEP_TYPE_STATIC;
+            int etype = mRandom.nextFloat() > 0.3f ? Enemy.ENEMY_TYPE_MOVING : Enemy.ENEMY_TYPE_STAY;
             float x = mRandom.nextFloat() * (WORLD_WIDTH - Step.STEP_WIDTH);
 
             Step step = new Step(type, stepTexture, 0, 0, 144, 36);
@@ -187,7 +204,12 @@ public class GameScreen extends ScreenAdapter {
                 Star star = new Star(starTexture,0, 0, 72, 72);
                 star.setPosition( step.getX() + mRandom.nextFloat(), step.getY() + Star.STAR_HEIGHT + mRandom.nextFloat() * 3);
                 mStars.add(star);
+                //敵と星が重ならないようにする
+                Enemy enemy = new Enemy(etype, enemysTexture,0,0,120,74);
+                enemy.setPosition( star.getX() + mRandom.nextFloat(), step.getY() + Enemy.ENEMY_HEIGHT + mRandom.nextFloat() *10);
+                mEnemys.add(enemy);
             }
+
 
             y += (maxJumpHeight -0.5f);
             y -= mRandom.nextFloat() * (maxJumpHeight / 3);
@@ -243,6 +265,11 @@ public class GameScreen extends ScreenAdapter {
             mSteps.get(i).update(delta);
         }
 
+        //Enemy
+        for (int i =0; i < mEnemys.size(); i++){
+            mEnemys.get(i).update(delta);
+        }
+
         // Player
         if (mPlayer.getY() <= 0.5f){
             mPlayer.hitstep();
@@ -274,8 +301,22 @@ public class GameScreen extends ScreenAdapter {
     }
 
     private void checkCollision(){
+
+        //Enemyとの当たり判定)
+        for (int i = 0; i < mEnemys.size(); i++){
+            Enemy enemy = mEnemys.get(i);
+            if (mPlayer.getBoundingRectangle().overlaps(enemy.getBoundingRectangle())){
+                sound1.play();
+                sound1.dispose();
+                mGameState = GAME_STATE_GAMEOVER;
+                return;
+            }
+        }
+
         // UFO(ゴールとの当たり判定)
         if (mPlayer.getBoundingRectangle().overlaps(mUfo.getBoundingRectangle())){
+            sound.play();
+            sound.dispose();
             mGameState = GAME_STATE_GAMEOVER;
             return;
         }

@@ -35,7 +35,7 @@ public class Step extends GameObject {
     }
     // 座標を更新する
     public void update(float deltaTime){
-        if(mState == STEP_TYPE_MOVING){
+        if(mType == STEP_TYPE_MOVING){
             setX(getX() + velocity.x * deltaTime);
 
             if ( getX() < STEP_WIDTH / 2){
