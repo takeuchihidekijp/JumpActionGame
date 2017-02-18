@@ -193,7 +193,7 @@ public class GameScreen extends ScreenAdapter {
         float maxJumpHeight = Player.PLAYER_JUMP_VELOCITY * Player.PLAYER_JUMP_VELOCITY / (2* -GRAVITY);
         while ( y < WORLD_HEIGHT -5 ){
             int type  = mRandom.nextFloat() > 0.5f ? Step.STEP_TYPE_MOVING : Step.STEP_TYPE_STATIC;
-            int etype = mRandom.nextFloat() > 0.3f ? Enemy.ENEMY_TYPE_MOVING : Enemy.ENEMY_TYPE_STAY;
+ //           int etype = mRandom.nextFloat() > 0.3f ? Enemy.ENEMY_TYPE_MOVING : Enemy.ENEMY_TYPE_STAY;
             float x = mRandom.nextFloat() * (WORLD_WIDTH - Step.STEP_WIDTH);
 
             Step step = new Step(type, stepTexture, 0, 0, 144, 36);
@@ -204,9 +204,9 @@ public class GameScreen extends ScreenAdapter {
                 Star star = new Star(starTexture,0, 0, 72, 72);
                 star.setPosition( step.getX() + mRandom.nextFloat(), step.getY() + Star.STAR_HEIGHT + mRandom.nextFloat() * 3);
                 mStars.add(star);
-                //敵と星が重ならないようにする
-                Enemy enemy = new Enemy(etype, enemysTexture,0,0,120,74);
-                enemy.setPosition( star.getX() + mRandom.nextFloat(), step.getY() + Enemy.ENEMY_HEIGHT + mRandom.nextFloat() *10);
+                //敵と星とステップが重ならないようにする
+                Enemy enemy = new Enemy(enemysTexture,0,0,120,74);
+                enemy.setPosition( star.getX() + mRandom.nextFloat(), step.getY() + Enemy.ENEMY_HEIGHT + maxJumpHeight);
                 mEnemys.add(enemy);
             }
 
@@ -266,9 +266,9 @@ public class GameScreen extends ScreenAdapter {
         }
 
         //Enemy
-        for (int i =0; i < mEnemys.size(); i++){
-            mEnemys.get(i).update(delta);
-        }
+   //     for (int i =0; i < mEnemys.size(); i++){
+    //        mEnemys.get(i).update(delta);
+     //   }
 
         // Player
         if (mPlayer.getY() <= 0.5f){
