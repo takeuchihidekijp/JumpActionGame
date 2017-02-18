@@ -195,19 +195,25 @@ public class GameScreen extends ScreenAdapter {
             int type  = mRandom.nextFloat() > 0.5f ? Step.STEP_TYPE_MOVING : Step.STEP_TYPE_STATIC;
  //           int etype = mRandom.nextFloat() > 0.3f ? Enemy.ENEMY_TYPE_MOVING : Enemy.ENEMY_TYPE_STAY;
             float x = mRandom.nextFloat() * (WORLD_WIDTH - Step.STEP_WIDTH);
+            float gx = mRandom.nextFloat() * (WORLD_WIDTH - Enemy.ENEMY_WIDTH);
 
             Step step = new Step(type, stepTexture, 0, 0, 144, 36);
             step.setPosition(x,y);
             mSteps.add(step);
 
-            if (mRandom.nextFloat() > 0.6f){
-                Star star = new Star(starTexture,0, 0, 72, 72);
-                star.setPosition( step.getX() + mRandom.nextFloat(), step.getY() + Star.STAR_HEIGHT + mRandom.nextFloat() * 3);
+            if (mRandom.nextFloat() > 0.3f) {
+                Star star = new Star(starTexture, 0, 0, 72, 72);
+                star.setPosition(step.getX() + mRandom.nextFloat(), step.getY() + Star.STAR_HEIGHT + mRandom.nextFloat() * 3);
                 mStars.add(star);
                 //敵と星とステップが重ならないようにする
-                Enemy enemy = new Enemy(enemysTexture,0,0,120,74);
-                enemy.setPosition( star.getX() + mRandom.nextFloat(), step.getY() + Enemy.ENEMY_HEIGHT + maxJumpHeight);
-                mEnemys.add(enemy);
+                Enemy enemy = new Enemy(enemysTexture, 0, 0, 120, 74);
+                enemy.setPosition(gx + star.getX(), step.getY() + Enemy.ENEMY_HEIGHT + maxJumpHeight);
+                //敵のサイズ以内に星のポジションがない場合に敵を表示する。
+                if (enemy.getBoundingRectangle().overlaps(star.getBoundingRectangle()) && (enemy.getBoundingRectangle().overlaps(step.getBoundingRectangle()))) {
+                    continue;
+                } else {
+                    mEnemys.add(enemy);
+                }
             }
 
 
